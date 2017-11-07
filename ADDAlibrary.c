@@ -786,8 +786,6 @@ uint8_t ADS1256_Scan(void)
 */
 void Write_DAC8552(uint8_t channel, uint16_t Data)
 {
-	uint8_t i;
-
 	 CS1_1() ;
 	 CS1_0() ;
       bcm2835_spi_transfer(channel);
@@ -821,12 +819,12 @@ uint16_t Voltage_Convert(float Vref, float voltage)
 *********************************************************************************************************
 */
 
-int start_ADC(int gain, int sampling_rate, int scan_mode) {
+void start_ADC(int gain, int sampling_rate, int scan_mode) {
 	// check if bcm2835 library initializes properly
 	// also serves to run bcm2835_init()
 	if (!bcm2835_init()) {
 		// if library does not initialize, end program
-		return 1;
+		return;
 	}
 
 	// begin spi
@@ -869,22 +867,18 @@ int start_ADC(int gain, int sampling_rate, int scan_mode) {
 	// setup ADC gain and sampling rate
 	ADS1256_CfgADC(gain, sampling_rate);
 	ADS1256_StartScan(scan_mode);
-
-	return 0;
 }
 
-int stop_ADC(void) {
+void stop_ADC(void) {
     bcm2835_spi_end();
     bcm2835_close();
-    return 0;
 }
 
-int collect_data(void) {
+void collect_data(void) {
 	ADS1256_ISR();
-	return 0;
 }
 
-int read_channel_raw(int channel) {
+long int read_channel_raw(int channel) {
 	long int adc = (long int) ADS1256_GetAdc(channel);
 	return adc;
 }
@@ -895,4 +889,22 @@ double read_channel_volts(int channel) {
 	double volts = (double) ADS1256_GetAdc(channel) * 5 / 8388608;
 
 	return volts;
+}
+
+void read_all_channels_raw(long int * adc, int ch) {
+	uint8_t i;
+
+	for (i = 0; i < ch; i++) {
+		adc[i] = (long int) ADS1256_GetAdc(i);
+	}
+}
+
+void read_all_channels_volts(double * volts, int ch) {
+	uint8_t i;
+
+	for (i = 0; i < ch; i++) {
+		// 5 volts reference divided by 2^23
+		// 24 bits ranging from +5v to -5v
+		volts[i] = (double) ADS1256_GetAdc(i) * 5 / 8388608;
+	}
 }
