@@ -6,3 +6,9 @@ Navigate to the cloned/downloaded directory on your Raspberry Pi and type in the
 ```
 sudo python3 setup.py install
 ```
+
+## Running sample code
+The C library requires root permission, so any time you run a script with pyadda, you must run it with sudo.
+```
+sudo python3 channel_read_example.py
+```
